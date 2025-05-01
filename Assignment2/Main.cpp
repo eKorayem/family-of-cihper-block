@@ -2,14 +2,23 @@
 #include "ECB.h"
 #include "CBC.h"
 #include "CipherBlock.h"
+#include "CTR.h"
+#include "SHA1.h"
+#include "LCG.h"
+#include "RSA.h"
+
 int main() {
     try {
+        LCG lcg(50060);
+
         // Sample key and IV (should be randomly generated in real applications)
-        vector<unsigned char> key = { 'K', 'E', 'Y', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', 'A', 'B', 'C' };
-        vector<unsigned char> iv = { 'I', 'V', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', 'A', 'B', 'C', 'D' };
+        
+        vector<unsigned char> key = lcg.get16DigitKey();
+        vector<unsigned char> iv = lcg.get16DigitKey();
+        vector<unsigned char> nonce = lcg.get8DigitKey();
 
         // Sample plaintext
-        string plaintext = "atiaatiaatiaatia";
+        string plaintext = "To be or not";
         cout << "Original: " << plaintext << std::endl;
 
         // ECB mode
@@ -30,15 +39,41 @@ int main() {
         cout << "Encrypt: "; CipherBlock::print_hexa(cbcEncrypted);
         cout << "\nDecrypted: " << cbcDecrypted << std::endl;
 
-        // Compare the two methods with identical plaintexts
-        string identical_text = "AAAAAAAAAAAAAAAA";  // 16 identical bytes
 
-        string ecb_identical = ecb.encryptString(identical_text);
-        string cbc_identical = cbc.encryptString(identical_text);
+        // CTR mode
+        CTR ctr(key, nonce);
+        string ctrEncrypted = ctr.encryptString(plaintext);
+        string ctrDecrypted = ctr.decryptString(ctrEncrypted);
 
-        cout << "\nComparing encryption of identical blocks:" << std::endl;
-        cout << "ECB produces identical ciphertext for identical blocks" << std::endl;
-        cout << "CBC produces different ciphertext for identical blocks due to chaining" << std::endl;
+        cout << "\nCTR Mode:" << endl;
+        cout << "Encrypted: ";
+        CipherBlock::print_hexa(ctrEncrypted);
+        cout << "\nDecrypted: " << ctrDecrypted << endl;
+
+        
+        char input[100] = "to be or not", hash[41];
+
+        SHA1 sha1;
+        sha1.compute(input, strlen(input), hash);
+        cout << "\nSHA-1 Hash: \nEncrypted: " << hash << endl;
+
+
+        RSA rsa;
+        rsa.generateKeys();
+
+        int e = rsa.getPublicKeyE();
+        int n = rsa.getPublicKeyN();
+
+        cout << "\nRSA\n";
+        std::cout << std::dec << "Public Key (e, n): (" << e << ", " << n << ")\n";
+        
+
+        int message = 123;
+        int encrypted = rsa.encrypt(message);
+
+        std::cout << std::dec << "Original Message: " << message << "\n";
+        std::cout << std::dec << "The Private Key D: " << rsa.getPrivateKeyD() << "\n";
+        std::cout << std::dec << "Encrypted Message: " << encrypted << "\n";
 
     }
     catch (const exception& e) {

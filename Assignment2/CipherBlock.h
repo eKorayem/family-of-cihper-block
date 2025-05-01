@@ -60,28 +60,28 @@ public:
      * @param data Data to encrypt
      * @return Encrypted data
      */
-    virtual std::vector<unsigned char> encrypt(const std::vector<unsigned char>& data) = 0;
+    virtual vector<unsigned char> encrypt(const std::vector<unsigned char>& data) = 0;
 
     /**
      * Decrypt data using the specific cipher mode
      * @param data Data to decrypt
      * @return Decrypted data
      */
-    virtual std::vector<unsigned char> decrypt(const std::vector<unsigned char>& data) = 0;
+    virtual vector<unsigned char> decrypt(const std::vector<unsigned char>& data) = 0;
 
     /**
      * Convenience function to encrypt a string
      * @param str String to encrypt
      * @return Encrypted string
      */
-    std::string encryptString(const std::string& str);
+    string encryptString(const std::string& str);
 
     /**
      * Convenience function to decrypt a string
      * @param str String to decrypt
      * @return Decrypted string
      */
-    std::string decryptString(const std::string& str);
+    string decryptString(const std::string& str);
 
     static void print_hexa(string str);
 };
