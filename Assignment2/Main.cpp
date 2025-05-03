@@ -1,85 +1,80 @@
 #include <iostream>
+#include <string>
+#include "SHA1.h"
+#include "RSA.h"
+#include "LCG.h"
 #include "ECB.h"
 #include "CBC.h"
-#include "CipherBlock.h"
 #include "CTR.h"
-#include "SHA1.h"
-#include "LCG.h"
-#include "RSA.h"
+
+using namespace std;
 
 int main() {
-    try {
-        LCG lcg(50060);
+    string input;
 
-        // Sample key and IV (should be randomly generated in real applications)
-        
-        vector<unsigned char> key = lcg.get16DigitKey();
-        vector<unsigned char> iv = lcg.get16DigitKey();
-        vector<unsigned char> nonce = lcg.get8DigitKey();
+    while (true) {
+        cout << "\nChoose encryption method (or enter 'q' to quit):\n";
+        cout << "1. SHA1\n";
+        cout << "2. RSA\n";
+        cout << "3. ECB\n";
+        cout << "4. CBC\n";
+        cout << "5. CTR\n";
+        cout << "Choice: ";
+        getline(cin, input);
 
-        // Sample plaintext
-        string plaintext = "To be or not";
-        cout << "Original: " << plaintext << std::endl;
+        if (input == "q" || input == "Q") break;
 
-        // ECB mode
-        ECB ecb(key);
-        string ecbEncrypted = ecb.encryptString(plaintext);
-        string ecbDecrypted = ecb.decryptString(ecbEncrypted);
+        string message;
+        cout << "Enter message (or number for RSA): ";
+        getline(cin, message);
 
-        cout << "\nECB Mode:" << endl;
-        cout << "Encrypt: "; CipherBlock::print_hexa(ecbEncrypted);
-        cout << "\nDcrypted: " << ecbDecrypted << std::endl;
-
-        // CBC mode
-        CBC cbc(key, iv);
-        string cbcEncrypted = cbc.encryptString(plaintext);
-        string cbcDecrypted = cbc.decryptString(cbcEncrypted);
-
-        cout << "\nCBC Mode:" << std::endl;
-        cout << "Encrypt: "; CipherBlock::print_hexa(cbcEncrypted);
-        cout << "\nDecrypted: " << cbcDecrypted << std::endl;
-
-
-        // CTR mode
-        CTR ctr(key, nonce);
-        string ctrEncrypted = ctr.encryptString(plaintext);
-        string ctrDecrypted = ctr.decryptString(ctrEncrypted);
-
-        cout << "\nCTR Mode:" << endl;
-        cout << "Encrypted: ";
-        CipherBlock::print_hexa(ctrEncrypted);
-        cout << "\nDecrypted: " << ctrDecrypted << endl;
-
-        
-        char input[100] = "to be or not", hash[41];
-
-        SHA1 sha1;
-        sha1.compute(input, strlen(input), hash);
-        cout << "\nSHA-1 Hash: \nEncrypted: " << hash << endl;
-
-
-        RSA rsa;
-        rsa.generateKeys();
-
-        int e = rsa.getPublicKeyE();
-        int n = rsa.getPublicKeyN();
-
-        cout << "\nRSA\n";
-        std::cout << std::dec << "Public Key (e, n): (" << e << ", " << n << ")\n";
-        
-
-        int message = 123;
-        int encrypted = rsa.encrypt(message);
-
-        std::cout << std::dec << "Original Message: " << message << "\n";
-        std::cout << std::dec << "The Private Key D: " << rsa.getPrivateKeyD() << "\n";
-        std::cout << std::dec << "Encrypted Message: " << encrypted << "\n";
-
-    }
-    catch (const exception& e) {
-        cerr << "Error: " << e.what() << std::endl;
-        return 1;
+        if (input == "1") {
+            SHA1 sha;
+            char hash[41] = { 0 };
+            sha.compute(message.c_str(), message.size(), hash);
+            cout << "SHA1 Hash: " << hash << endl;
+        }
+        else if (input == "2") {
+            RSA rsa;
+            rsa.generateKeys();
+            try {
+                int m = stoi(message);
+                int encrypted = rsa.encrypt(m);
+                cout << "Encrypted (RSA): " << encrypted << endl;
+                cout << "Public Key (e, n): (" << rsa.getPublicKeyE() << ", " << rsa.getPublicKeyN() << ")" << endl;
+            }
+            catch (...) {
+                cout << "RSA requires a numeric input." << endl;
+            }
+        }
+        else if (input == "3") {
+            LCG lcg;
+            vector<unsigned char> key = lcg.get16DigitKey();
+            ECB ecb(key);
+            string encrypted = ecb.encryptString(message);
+            cout << "Encrypted (ECB): " << encrypted << endl;
+        }
+        else if (input == "4") {
+            LCG lcg;
+            vector<unsigned char> key = lcg.get16DigitKey();
+            vector<unsigned char> iv = lcg.get16DigitKey();
+            CBC cbc(key, iv);
+            string encrypted = cbc.encryptString(message);
+            cout << "Encrypted (CBC): " << encrypted << endl;
+        }
+        else if (input == "5") {
+            LCG lcg;
+            vector<unsigned char> key = lcg.get16DigitKey();
+            vector<unsigned char> nonce = lcg.get8DigitKey();
+            CTR ctr(key, nonce);
+            string encrypted = ctr.encryptString(message);
+            cout << "Encrypted (CTR): " << encrypted << endl;
+        }
+        else {
+            cout << "Invalid choice." << endl;
+        }
     }
 
+    cout << "Exiting encryption program." << endl;
     return 0;
 }
