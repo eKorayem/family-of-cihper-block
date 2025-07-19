@@ -121,3 +121,4 @@ std::vector<unsigned char> LCG::get8DigitKey() {
 
     return vec_uchar;
 }
+// waheed was here
