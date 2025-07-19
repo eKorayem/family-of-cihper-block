@@ -18,7 +18,7 @@ class CTR : public CipherBlock {
 private:
     // Nonce combined with counter for generating keystream
     std::vector<unsigned char> nonce;
-
+ 
     /**
      * Generate the counter block for a given block index
      * @param blockIndex The index of the block
